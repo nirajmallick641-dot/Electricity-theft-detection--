@@ -8,6 +8,111 @@
   <script src="/_sdk/element_sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&amp;family=Rajdhani:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
   <style>
+   
+   .container{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:25px;
+    padding:30px;
+}
+.card{
+    background: rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:20px;
+    padding:25px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 0 20px rgba(0,255,255,0.2);
+    transition: 0.3s;
+}
+.card:hover{
+    transform: translateY(-5px);
+    box-shadow: 0 0 30px rgba(0,255,255,0.6);
+   button{
+    padding:10px 22px;
+    border:none;
+    border-radius:30px;
+    cursor:pointer;
+    font-weight:bold;
+    background: linear-gradient(45deg, #00f5ff, #0088ff);
+    color:black;
+    box-shadow:0 0 15px #00f5ff;
+}
+   input,select{
+    padding:10px;
+    border-radius:20px;
+    border:none;
+    background: rgba(255,255,255,0.15);
+    color:white;
+    width:100%;
+    margin-top:10px;
+}
+.alert-active{
+    background: linear-gradient(45deg, #ff0000, #ff6a00) !important;
+    animation: pulse 1s infinite;
+}
+@keyframes pulse{
+    0%{box-shadow:0 0 10px red;}
+    50%{box-shadow:0 0 30px red;}
+    100%{box-shadow:0 0 10px red;}
+}
+#alertBox{
+    padding:15px;
+    border-radius:15px;
+    background: linear-gradient(45deg, #00ff99, #00cc66);
+    font-weight:bold;
+    text-align:center;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+td,th{
+    border:1px solid rgba(255,255,255,0.2);
+    padding:8px;
+    text-align:center;
+}
+   /*Radar*/
+    .radar{
+    position:relative;
+    width:250px;
+    height:250px;
+    margin:auto;
+    border-radius:50%;
+    background: rgba(0,255,0,0.05);
+    overflow:hidden;
+}
+.radar-circle{
+    position:absolute;
+    width:100%;
+    height:100%;
+    border:1px solid rgba(0,255,0,0.3);
+    border-radius:50%;
+}
+.radar-circle:nth-child(2){transform:scale(0.7);}
+.radar-circle:nth-child(3){transform:scale(0.4);}
+.radar-sweep{
+    position:absolute;
+    width:100%;
+    height:100%;
+    background: conic-gradient(rgba(0,255,0,0.4) 0deg, transparent 60deg);
+    border-radius:50%;
+    animation: sweep 2s linear infinite;
+}
+@keyframes sweep{
+    from{ transform:rotate(0deg); }
+    to{ transform:rotate(360deg); }
+}
+.radar-dot{
+    position:absolute;
+    width:10px;
+    height:10px;
+    background:#00ff00;
+    border-radius:50%;
+    box-shadow:0 0 10px #00ff00;
+    opacity:0;
+}
+   
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; padding: 0; }
     
@@ -243,6 +348,185 @@
   <style>body { box-sizing: border-box; }</style>
  </head>
  <body class="h-full">
+  <div class="container">
+
+<div class="card">
+<h3>Admin Login</h3>
+<input type="password" id="adminPass" placeholder="Enter Password">
+<button onclick="login()">Login</button>
+<p id="loginStatus"></p>
+</div>
+
+<div class="card">
+<h3>System Control</h3>
+<select id="zone">
+<option>Zone 1</option>
+<option>Zone 2</option>
+<option>Zone 3</option>
+</select>
+<br><br>
+<button onclick="startMonitoring()">Start Monitoring</button>
+<p id="status">Status: Not Started</p>
+<p>Total Alerts: <span id="alertCount">0</span></p>
+</div>
+
+<div class="card">
+<h3>Live Alert</h3>
+<div id="alertBox">System Normal</div>
+</div>
+
+<div class="card">
+<h3>Live Sound Graph</h3>
+<canvas id="soundChart"></canvas>
+</div>
+
+<div class="card">
+<h3>Radar Detection</h3>
+<div class="radar">
+    <div class="radar-circle"></div>
+    <div class="radar-circle"></div>
+    <div class="radar-circle"></div>
+    <div class="radar-sweep"></div>
+    <div class="radar-dot" id="radarDot"></div>
+</div>
+</div>
+
+<div class="card">
+<h3>Alert History</h3>
+<button onclick="exportCSV()">Export CSV</button>
+<table>
+<thead>
+<tr><th>Time</th><th>Zone</th><th>Status</th></tr>
+</thead>
+<tbody id="historyTable"></tbody>
+</table>
+</div>
+
+</div>
+
+<script>
+let audioContext, analyser, microphone, dataArray;
+let monitoring=false;
+let alertCounter=0;
+let historyData=[];
+let chart;
+let lastAlertTime=0;
+
+function login(){
+    if(document.getElementById("adminPass").value==="admin123"){
+        localStorage.setItem("adminLogged","true");
+        document.getElementById("loginStatus").innerText="Login Successful";
+    } else {
+        document.getElementById("loginStatus").innerText="Wrong Password";
+    }
+}
+
+function startMonitoring(){
+    if(localStorage.getItem("adminLogged")!=="true"){
+        alert("Login First!");
+        return;
+    }
+    if(monitoring) return;
+
+    navigator.mediaDevices.getUserMedia({
+        audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}
+    })
+    .then(stream=>{
+        audioContext=new (window.AudioContext||window.webkitAudioContext)();
+        analyser=audioContext.createAnalyser();
+        microphone=audioContext.createMediaStreamSource(stream);
+        microphone.connect(analyser);
+
+        analyser.fftSize=256;
+        dataArray=new Uint8Array(analyser.frequencyBinCount);
+
+        monitoring=true;
+        document.getElementById("status").innerText="Monitoring...";
+        initChart();
+        monitorSound();
+    })
+    .catch(()=>alert("Microphone permission denied."));
+}
+
+function initChart(){
+    const ctx=document.getElementById('soundChart').getContext('2d');
+    chart=new Chart(ctx,{
+        type:'line',
+        data:{labels:[],datasets:[{label:'Sound Level',data:[],borderWidth:2}]},
+        options:{animation:false,responsive:true,scales:{y:{beginAtZero:true}}}
+    });
+}
+
+function monitorSound(){
+    if(!monitoring) return;
+    analyser.getByteFrequencyData(dataArray);
+
+    let sum=0;
+    for(let i=0;i<dataArray.length;i++) sum+=dataArray[i];
+    let avg=sum/dataArray.length;
+
+    updateChart(avg);
+
+    let now=Date.now();
+    if(avg>40 && now-lastAlertTime>3000){
+        lastAlertTime=now;
+        triggerAlert();
+    }
+    requestAnimationFrame(monitorSound);
+}
+
+function updateChart(value){
+    if(chart.data.labels.length>40){
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+    }
+    chart.data.labels.push('');
+    chart.data.datasets[0].data.push(value);
+    chart.update();
+}
+
+function triggerAlert(){
+    let alertBox=document.getElementById("alertBox");
+    alertBox.innerText="⚠ Theft Alert!";
+    alertBox.classList.add("alert-active");
+
+    let dot=document.getElementById("radarDot");
+    dot.style.left=Math.random()*200+"px";
+    dot.style.top=Math.random()*200+"px";
+    dot.style.opacity="1";
+
+    setTimeout(()=>{
+        alertBox.innerText="System Normal";
+        alertBox.classList.remove("alert-active");
+        dot.style.opacity="0";
+    },3000);
+
+    alertCounter++;
+    document.getElementById("alertCount").innerText=alertCounter;
+
+    let zone=document.getElementById("zone").value;
+    let time=new Date().toLocaleString();
+    historyData.push({time,zone,status:"Theft Detected"});
+    addHistory(time,zone);
+}
+
+function addHistory(time,zone){
+    let row=document.createElement("tr");
+    row.innerHTML=`<td>${time}</td><td>${zone}</td><td>Theft Detected</td>`;
+    document.getElementById("historyTable").prepend(row);
+}
+
+function exportCSV(){
+    if(historyData.length===0){alert("No data");return;}
+    let csv="Time,Zone,Status\n";
+    historyData.forEach(item=>{csv+=`${item.time},${item.zone},${item.status}\n`;});
+    let blob=new Blob([csv],{type:"text/csv"});
+    let link=document.createElement("a");
+    link.href=URL.createObjectURL(blob);
+    link.download="alert_report.csv";
+    link.click();
+}
+</script>
   <div id="app" class="h-full w-full grid-bg overflow-auto">
    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div><!-- Login/Signup Page (DEMO MODE) -->
    <div id="auth-page" class="min-h-full w-full flex items-center justify-center p-4 relative">
