@@ -1,0 +1,1237 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electricity Theft Detection System</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&amp;family=Rajdhani:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    
+    :root {
+      --bg-dark: #0a0e1a;
+      --surface: #111827;
+      --text-primary: #e0f2fe;
+      --accent-cyan: #06b6d4;
+      --accent-red: #ef4444;
+    }
+    
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+    }
+    
+    .font-display { font-family: 'Orbitron', monospace; }
+    
+    .grid-bg {
+      background-image: 
+        linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: gridMove 20s linear infinite;
+    }
+    
+    @keyframes gridMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 50px 50px; }
+    }
+    
+    .glow-cyan {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.3), 0 0 40px rgba(6, 182, 212, 0.1);
+    }
+    
+    .glow-red {
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.3), 0 0 40px rgba(239, 68, 68, 0.1);
+    }
+    
+    .glow-green {
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.3), 0 0 40px rgba(34, 197, 94, 0.1);
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.02); }
+    }
+    
+    .pulse-animate {
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-4px);
+      border-color: rgba(6, 182, 212, 0.5);
+      box-shadow: 0 10px 40px rgba(6, 182, 212, 0.2);
+    }
+    
+    .input-cyber {
+      background: rgba(17, 24, 39, 0.8);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .input-cyber:focus {
+      border-color: #06b6d4;
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+      outline: none;
+    }
+    
+    .btn-cyber {
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-cyber::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .btn-cyber:hover::before {
+      left: 100%;
+    }
+    
+    .btn-cyber:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(6, 182, 212, 0.4);
+    }
+    
+    .btn-cyber:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    @keyframes progress-flow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    
+    .progress-animated {
+      background: linear-gradient(90deg, #06b6d4, #22d3ee, #06b6d4);
+      background-size: 200% 100%;
+      animation: progress-flow 2s linear infinite;
+    }
+    
+    @keyframes alert-blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .alert-blink {
+      animation: alert-blink 1s ease-in-out infinite;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .fade-in-up {
+      animation: fadeInUp 0.5s ease-out forwards;
+    }
+    
+    .fade-in-up-delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .fade-in-up-delay-2 { animation-delay: 0.2s; opacity: 0; }
+    .fade-in-up-delay-3 { animation-delay: 0.3s; opacity: 0; }
+    .fade-in-up-delay-4 { animation-delay: 0.4s; opacity: 0; }
+    
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #111827;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #06b6d4;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #22d3ee;
+    }
+    
+    @keyframes gauge-fill {
+      from { stroke-dashoffset: 251; }
+    }
+    
+    .gauge-animated {
+      animation: gauge-fill 1.5s ease-out forwards;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(6, 182, 212, 0.5);
+      border-radius: 50%;
+      animation: float 8s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100px) translateX(20px); opacity: 0; }
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+    
+    .spinner {
+      border: 3px solid rgba(6, 182, 212, 0.2);
+      border-top-color: #06b6d4;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .toast {
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  </style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app" class="h-full w-full grid-bg overflow-auto">
+   <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div><!-- Login/Signup Page (DEMO MODE) -->
+   <div id="auth-page" class="min-h-full w-full flex items-center justify-center p-4 relative">
+    <div class="particle" style="left: 10%; top: 20%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 20%; top: 60%; animation-delay: 1s;"></div>
+    <div class="particle" style="left: 80%; top: 30%; animation-delay: 2s;"></div>
+    <div class="particle" style="left: 70%; top: 70%; animation-delay: 3s;"></div>
+    <div class="particle" style="left: 50%; top: 80%; animation-delay: 4s;"></div>
+    <div class="w-full max-w-md">
+     <div class="text-center mb-8 fade-in-up">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 mb-4 glow-cyan pulse-animate">
+       <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+       </svg>
+      </div>
+      <h1 id="auth-title" class="font-display text-2xl md:text-3xl font-bold text-cyan-400 mb-2">ELECTRICITY THEFT DETECTION</h1>
+      <p id="auth-college" class="text-gray-400 text-sm">Parul Polytechnic Institute</p>
+      <p class="text-gray-500 text-xs mt-1">ESP8266 &amp; Arduino Based System</p>
+     </div>
+     <div class="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-6 md:p-8 card-hover fade-in-up fade-in-up-delay-1">
+      <div class="flex mb-6 bg-gray-800 rounded-lg p-1"><button id="login-tab" onclick="switchAuthTab('login')" class="flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-all bg-cyan-500 text-white"> Login </button> <button id="signup-tab" onclick="switchAuthTab('signup')" class="flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-all text-gray-400 hover:text-white"> Sign Up </button>
+      </div>
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+       <div><label class="block text-sm font-medium text-gray-300 mb-1">Email Address</label> <input type="email" id="login-email" placeholder="admin@parul.edu" class="input-cyber w-full px-4 py-3 rounded-lg text-white placeholder-gray-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-300 mb-1">Password</label> <input type="password" id="login-password" placeholder="••••••••" class="input-cyber w-full px-4 py-3 rounded-lg text-white placeholder-gray-500">
+       </div><button type="submit" id="login-btn" class="btn-cyber w-full py-3 rounded-lg text-white font-semibold flex items-center justify-center gap-2"> <span>Access Dashboard</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg></button>
+      </form>
+      <form id="signup-form" onsubmit="handleSignup(event)" class="space-y-4 hidden">
+       <div><label class="block text-sm font-medium text-gray-300 mb-1">Full Name</label> <input type="text" id="signup-name" placeholder="John Doe" class="input-cyber w-full px-4 py-3 rounded-lg text-white placeholder-gray-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-300 mb-1">Email Address</label> <input type="email" id="signup-email" placeholder="student@parul.edu" class="input-cyber w-full px-4 py-3 rounded-lg text-white placeholder-gray-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-300 mb-1">Password</label> <input type="password" id="signup-password" placeholder="Min 6 characters" minlength="6" class="input-cyber w-full px-4 py-3 rounded-lg text-white placeholder-gray-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label> <input type="password" id="signup-confirm" placeholder="••••••••" class="input-cyber w-full px-4 py-3 rounded-lg text-white placeholder-gray-500">
+       </div><button type="submit" id="signup-btn" class="btn-cyber w-full py-3 rounded-lg text-white font-semibold flex items-center justify-center gap-2"> <span>Create Account</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+        </svg></button>
+      </form>
+     </div>
+     <p class="text-center text-gray-500 text-xs mt-6 fade-in-up fade-in-up-delay-2">© 2024 Parul Polytechnic Institute • IoT Project • DEMO MODE</p>
+    </div>
+   </div><!-- Dashboard Page -->
+   <div id="dashboard-page" class="hidden min-h-full w-full">
+    <header class="bg-gray-900/90 backdrop-blur-sm border-b border-cyan-500/20 sticky top-0 z-40">
+     <div class="max-w-7xl mx-auto px-4 py-3">
+      <div class="flex items-center justify-between">
+       <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center glow-cyan">
+         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+         </svg>
+        </div>
+        <div>
+         <h1 id="dashboard-title" class="font-display text-lg font-bold text-cyan-400">ETD SYSTEM</h1>
+         <p id="dashboard-college" class="text-xs text-gray-500">Parul Polytechnic Institute</p>
+        </div>
+       </div>
+       <nav class="hidden md:flex items-center gap-6"><button onclick="switchDashboardView('overview')" class="nav-link text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors" data-view="overview">Overview</button> <button onclick="switchDashboardView('meters')" class="nav-link text-sm font-medium text-gray-400 hover:text-cyan-300 transition-colors" data-view="meters">Meters</button> <button onclick="switchDashboardView('alerts')" class="nav-link text-sm font-medium text-gray-400 hover:text-cyan-300 transition-colors" data-view="alerts">Alerts</button> <button onclick="switchDashboardView('analytics')" class="nav-link text-sm font-medium text-gray-400 hover:text-cyan-300 transition-colors" data-view="analytics">Analytics</button>
+       </nav>
+       <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-500/20 rounded-full">
+         <div class="status-dot bg-green-500"></div><span class="text-green-400 text-xs font-medium">System Online</span>
+        </div><button onclick="handleLogout()" class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Logout">
+         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+         </svg></button>
+       </div>
+      </div>
+     </div>
+     <div class="md:hidden border-t border-gray-800">
+      <div class="flex overflow-x-auto px-4 py-2 gap-4"><button onclick="switchDashboardView('overview')" class="nav-link whitespace-nowrap text-sm font-medium text-cyan-400" data-view="overview">Overview</button> <button onclick="switchDashboardView('meters')" class="nav-link whitespace-nowrap text-sm font-medium text-gray-400" data-view="meters">Meters</button> <button onclick="switchDashboardView('alerts')" class="nav-link whitespace-nowrap text-sm font-medium text-gray-400" data-view="alerts">Alerts</button> <button onclick="switchDashboardView('analytics')" class="nav-link whitespace-nowrap text-sm font-medium text-gray-400" data-view="analytics">Analytics</button>
+      </div>
+     </div>
+    </header>
+    <main class="max-w-7xl mx-auto px-4 py-6">
+     <div id="overview-view" class="space-y-6">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+       <div class="bg-gray-900/80 rounded-xl p-4 card-hover fade-in-up">
+        <div class="flex items-center justify-between mb-3">
+         <div class="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+          <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+         </div><span class="text-xs text-green-400 bg-green-500/20 px-2 py-0.5 rounded-full">Live</span>
+        </div>
+        <p class="text-gray-400 text-xs mb-1">Total Meters</p>
+        <p id="stat-total-meters" class="font-display text-2xl font-bold text-white">0</p>
+       </div>
+       <div class="bg-gray-900/80 rounded-xl p-4 card-hover fade-in-up fade-in-up-delay-1">
+        <div class="flex items-center justify-between mb-3">
+         <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+          <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+         </div>
+        </div>
+        <p class="text-gray-400 text-xs mb-1">Normal Status</p>
+        <p id="stat-normal" class="font-display text-2xl font-bold text-green-400">0</p>
+       </div>
+       <div class="bg-gray-900/80 rounded-xl p-4 card-hover fade-in-up fade-in-up-delay-2">
+        <div class="flex items-center justify-between mb-3">
+         <div class="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+          <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+         </div>
+        </div>
+        <p class="text-gray-400 text-xs mb-1">Suspicious</p>
+        <p id="stat-suspicious" class="font-display text-2xl font-bold text-yellow-400">0</p>
+       </div>
+       <div class="bg-gray-900/80 rounded-xl p-4 card-hover fade-in-up fade-in-up-delay-3">
+        <div class="flex items-center justify-between mb-3">
+         <div class="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
+          <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+         </div><span id="theft-badge" class="hidden text-xs text-red-400 bg-red-500/20 px-2 py-0.5 rounded-full alert-blink">Alert!</span>
+        </div>
+        <p class="text-gray-400 text-xs mb-1">Theft Detected</p>
+        <p id="stat-theft" class="font-display text-2xl font-bold text-red-400">0</p>
+       </div>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-6">
+       <div class="lg:col-span-2 bg-gray-900/80 rounded-xl p-6 card-hover">
+        <h3 class="font-display text-lg font-bold text-cyan-400 mb-4">⚡ Live Power Flow Monitor</h3>
+        <div class="relative bg-gray-800/50 rounded-xl p-6">
+         <div class="flex items-center justify-between">
+          <div class="text-center">
+           <div class="w-16 h-16 mx-auto rounded-full bg-cyan-500/20 flex items-center justify-center mb-2 glow-cyan">
+            <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+           </div>
+           <p class="text-xs text-gray-400">Supply</p>
+           <p id="supply-value" class="font-display text-xl font-bold text-cyan-400">0.00 kW</p>
+          </div>
+          <div class="flex-1 mx-4">
+           <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div id="power-flow" class="h-full w-3/4 progress-animated rounded-full"></div>
+           </div>
+           <div class="flex justify-between mt-2"><span class="text-xs text-gray-500">Transmission</span> <span id="efficiency-value" class="text-xs text-green-400">100% Efficient</span>
+           </div>
+          </div>
+          <div class="text-center">
+           <div class="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center mb-2 glow-green">
+            <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+           </div>
+           <p class="text-xs text-gray-400">Consumption</p>
+           <p id="consumption-value" class="font-display text-xl font-bold text-green-400">0.00 kW</p>
+          </div>
+         </div>
+         <div id="loss-indicator" class="mt-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg hidden">
+          <div class="flex items-center justify-between">
+           <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-green-500"></div><span class="text-green-400 font-medium">Power Loss:</span>
+           </div><span id="loss-value" class="font-display text-lg font-bold text-green-400">0.00 kW (0%)</span>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="bg-gray-900/80 rounded-xl p-6 card-hover">
+        <h3 class="font-display text-lg font-bold text-cyan-400 mb-4">📊 System Status</h3>
+        <div class="space-y-4">
+         <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+          <div class="flex items-center gap-2">
+           <div class="w-2 h-2 rounded-full bg-green-500"></div><span class="text-sm text-gray-300">ESP8266 Module</span>
+          </div><span class="text-xs text-green-400">Connected</span>
+         </div>
+         <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+          <div class="flex items-center gap-2">
+           <div class="w-2 h-2 rounded-full bg-green-500"></div><span class="text-sm text-gray-300">Arduino UNO</span>
+          </div><span class="text-xs text-green-400">Active</span>
+         </div>
+         <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+          <div class="flex items-center gap-2">
+           <div class="w-2 h-2 rounded-full bg-green-500"></div><span class="text-sm text-gray-300">Current Sensor</span>
+          </div><span class="text-xs text-green-400">Operational</span>
+         </div>
+         <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+          <div class="flex items-center gap-2">
+           <div class="w-2 h-2 rounded-full bg-cyan-500"></div><span class="text-sm text-gray-300">Cloud Sync</span>
+          </div><span class="text-xs text-cyan-400">Real-time</span>
+         </div>
+        </div>
+        <div class="mt-6 p-4 bg-gray-800/50 rounded-lg"><label class="block text-sm text-gray-400 mb-2">Theft Threshold</label>
+         <div class="flex items-center gap-2"><input type="range" id="threshold-slider" min="5" max="30" value="10" class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" oninput="updateThreshold(this.value)"> <span id="threshold-display" class="text-cyan-400 font-display font-bold w-12 text-right">10%</span>
+         </div>
+        </div>
+       </div>
+      </div><!-- Sensor Readings -->
+      <div class="grid sm:grid-cols-2 gap-6">
+       <div class="bg-gray-900/80 rounded-xl p-6 card-hover border border-cyan-500/30 fade-in-up">
+        <div class="flex items-center justify-between mb-4">
+         <div>
+          <h3 class="font-display text-lg font-bold text-cyan-400">🔌 Sensor 1</h3>
+          <p class="text-xs text-gray-500">Current Reading</p>
+         </div>
+         <div class="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center pulse-animate">
+          <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
+         </div>
+        </div>
+        <div class="mb-4">
+         <p id="sensor1-value" class="font-display text-4xl font-bold text-cyan-400">0.0</p>
+         <p class="text-gray-400 text-sm">Ampere (A)</p>
+        </div>
+        <div id="sensor1-status" class="flex items-center gap-2 mb-3 p-2 bg-green-500/20 rounded-lg">
+         <div class="w-2 h-2 rounded-full bg-green-400"></div><span id="sensor1-status-text" class="text-xs text-green-400 font-medium">Normal</span>
+        </div>
+        <div class="mb-3">
+         <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+          <div id="sensor1-progress" class="h-full progress-animated rounded-full" style="width: 30%;"></div>
+         </div>
+         <div class="flex justify-between mt-1 text-xs text-gray-500"><span>0A</span> <span id="sensor1-percent">30%</span> <span>50A</span>
+         </div>
+        </div>
+        <div class="text-xs text-gray-600 text-right">
+         <p id="sensor1-time">Last updated: Just now</p>
+        </div>
+       </div>
+       <div class="bg-gray-900/80 rounded-xl p-6 card-hover border border-green-500/30 fade-in-up fade-in-up-delay-1">
+        <div class="flex items-center justify-between mb-4">
+         <div>
+          <h3 class="font-display text-lg font-bold text-green-400">⚡ Sensor 2</h3>
+          <p class="text-xs text-gray-500">Voltage Reading</p>
+         </div>
+         <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center pulse-animate">
+          <div class="w-3 h-3 rounded-full bg-green-400"></div>
+         </div>
+        </div>
+        <div class="mb-4">
+         <p id="sensor2-value" class="font-display text-4xl font-bold text-green-400">0.0</p>
+         <p class="text-gray-400 text-sm">Volts (V)</p>
+        </div>
+        <div id="sensor2-status" class="flex items-center gap-2 mb-3 p-2 bg-green-500/20 rounded-lg">
+         <div class="w-2 h-2 rounded-full bg-green-400"></div><span id="sensor2-status-text" class="text-xs text-green-400 font-medium">Stable</span>
+        </div>
+        <div class="mb-3">
+         <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+          <div id="sensor2-progress" class="h-full progress-animated rounded-full" style="width: 65%;"></div>
+         </div>
+         <div class="flex justify-between mt-1 text-xs text-gray-500"><span>180V</span> <span id="sensor2-percent">65%</span> <span>250V</span>
+         </div>
+        </div>
+        <div class="text-xs text-gray-600 text-right">
+         <p id="sensor2-time">Last updated: Just now</p>
+        </div>
+       </div>
+      </div>
+      <div class="bg-gray-900/80 rounded-xl p-6 card-hover">
+       <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display text-lg font-bold text-cyan-400">📋 Recent Meter Readings</h3><button onclick="addSampleReading()" class="btn-cyber px-4 py-2 rounded-lg text-sm font-medium text-white flex items-center gap-2">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+         </svg><span class="hidden sm:inline">Simulate Reading</span> <span class="sm:hidden">Add</span> </button>
+       </div>
+       <div class="overflow-x-auto">
+        <table class="w-full">
+         <thead>
+          <tr class="text-left text-xs text-gray-500 border-b border-gray-800">
+           <th class="pb-3 pr-4">Meter ID</th>
+           <th class="pb-3 pr-4">Location</th>
+           <th class="pb-3 pr-4">Supply (kW)</th>
+           <th class="pb-3 pr-4">Consumption (kW)</th>
+           <th class="pb-3 pr-4">Difference</th>
+           <th class="pb-3 pr-4">Status</th>
+           <th class="pb-3">Time</th>
+          </tr>
+         </thead>
+         <tbody id="readings-table" class="text-sm">
+          <tr class="border-b border-gray-800/50">
+           <td colspan="7" class="py-8 text-center text-gray-500">
+            <div class="flex flex-col items-center gap-2">
+             <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+             </svg>
+             <p>No readings yet. Click "Simulate Reading" to add data.</p>
+            </div></td>
+          </tr>
+         </tbody>
+        </table>
+       </div>
+      </div>
+     </div>
+     <div id="meters-view" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+       <h2 class="font-display text-xl font-bold text-cyan-400">🔌 All Meters</h2><button onclick="addSampleReading()" class="btn-cyber px-4 py-2 rounded-lg text-sm font-medium text-white"> + Add Meter Reading </button>
+      </div>
+      <div id="meters-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+       <div class="bg-gray-900/80 rounded-xl p-6 text-center">
+        <p class="text-gray-500">No meters registered yet.</p>
+       </div>
+      </div>
+     </div>
+     <div id="alerts-view" class="hidden space-y-6">
+      <h2 class="font-display text-xl font-bold text-cyan-400">🚨 Theft Alerts</h2>
+      <div id="alerts-list" class="space-y-4">
+       <div class="bg-gray-900/80 rounded-xl p-6 text-center">
+        <div class="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center mb-4">
+         <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg>
+        </div>
+        <p class="text-green-400 font-medium">No theft detected</p>
+        <p class="text-gray-500 text-sm mt-1">All meters are operating normally</p>
+       </div>
+      </div>
+     </div>
+     <div id="analytics-view" class="hidden space-y-6">
+      <h2 class="font-display text-xl font-bold text-cyan-400">📈 Analytics Dashboard</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+       <div class="bg-gray-900/80 rounded-xl p-6 card-hover">
+        <h3 class="text-lg font-semibold text-white mb-4">System Efficiency</h3>
+        <div class="flex items-center justify-center">
+         <svg class="w-48 h-48" viewbox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="#1f2937" stroke-width="8" /> <circle id="efficiency-gauge" cx="50" cy="50" r="40" fill="none" stroke="#06b6d4" stroke-width="8" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="25" transform="rotate(-90 50 50)" class="gauge-animated" /> <text x="50" y="50" text-anchor="middle" dy="0.3em" class="fill-cyan-400 font-display text-xl font-bold" id="efficiency-text">
+           90%
+          </text>
+         </svg>
+        </div>
+       </div>
+       <div class="bg-gray-900/80 rounded-xl p-6 card-hover">
+        <h3 class="text-lg font-semibold text-white mb-4">Detection Statistics</h3>
+        <div class="space-y-4">
+         <div>
+          <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Normal Readings</span> <span id="normal-percent" class="text-green-400">0%</span>
+          </div>
+          <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+           <div id="normal-bar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+         </div>
+         <div>
+          <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Suspicious Activity</span> <span id="suspicious-percent" class="text-yellow-400">0%</span>
+          </div>
+          <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+           <div id="suspicious-bar" class="h-full bg-yellow-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+         </div>
+         <div>
+          <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Confirmed Theft</span> <span id="theft-percent" class="text-red-400">0%</span>
+          </div>
+          <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+           <div id="theft-bar" class="h-full bg-red-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="bg-gray-900/80 rounded-xl p-6 card-hover">
+       <h3 class="text-lg font-semibold text-white mb-4">Power Loss Trend</h3>
+       <div id="trend-chart" class="flex items-end justify-between h-40 gap-2 px-4">
+        <div class="flex-1 bg-cyan-500/50 rounded-t transition-all duration-500" style="height: 20%"></div>
+        <div class="flex-1 bg-cyan-500/50 rounded-t transition-all duration-500" style="height: 35%"></div>
+        <div class="flex-1 bg-cyan-500/50 rounded-t transition-all duration-500" style="height: 25%"></div>
+        <div class="flex-1 bg-cyan-500/50 rounded-t transition-all duration-500" style="height: 45%"></div>
+        <div class="flex-1 bg-cyan-500/50 rounded-t transition-all duration-500" style="height: 30%"></div>
+        <div class="flex-1 bg-cyan-500/50 rounded-t transition-all duration-500" style="height: 55%"></div>
+        <div class="flex-1 bg-cyan-500/50 rounded-t transition-all duration-500" style="height: 40%"></div>
+       </div>
+       <div class="flex justify-between mt-2 text-xs text-gray-500 px-4"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+       </div>
+      </div>
+     </div>
+    </main>
+   </div>
+  </div>
+  <script>
+    // ============================================
+    // Configuration & State Management
+    // ============================================
+    
+    const defaultConfig = {
+      system_title: 'ELECTRICITY THEFT DETECTION',
+      college_name: 'Parul Polytechnic Institute',
+      theft_threshold: '10',
+      background_color: '#0a0e1a',
+      surface_color: '#111827',
+      text_color: '#e0f2fe',
+      primary_action: '#06b6d4',
+      secondary_action: '#374151'
+    };
+    
+    let allData = [];
+    let currentUser = null;
+    let currentView = 'overview';
+    let theftThreshold = 10;
+    let sensorInterval = null;
+    
+    // ============================================
+    // Element SDK Integration
+    // ============================================
+    
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (config) => {
+          const systemTitle = config.system_title || defaultConfig.system_title;
+          const collegeName = config.college_name || defaultConfig.college_name;
+          const threshold = config.theft_threshold || defaultConfig.theft_threshold;
+          
+          const bgColor = config.background_color || defaultConfig.background_color;
+          const surfaceColor = config.surface_color || defaultConfig.surface_color;
+          const textColor = config.text_color || defaultConfig.text_color;
+          const primaryAction = config.primary_action || defaultConfig.primary_action;
+          const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
+          
+          document.documentElement.style.setProperty('--bg-dark', bgColor);
+          document.documentElement.style.setProperty('--surface', surfaceColor);
+          document.documentElement.style.setProperty('--text-primary', textColor);
+          document.documentElement.style.setProperty('--accent-cyan', primaryAction);
+          
+          const authTitle = document.getElementById('auth-title');
+          const authCollege = document.getElementById('auth-college');
+          const dashTitle = document.getElementById('dashboard-title');
+          const dashCollege = document.getElementById('dashboard-college');
+          
+          if (authTitle) authTitle.textContent = systemTitle;
+          if (authCollege) authCollege.textContent = collegeName;
+          if (dashTitle) dashTitle.textContent = systemTitle.substring(0, 15);
+          if (dashCollege) dashCollege.textContent = collegeName;
+          
+          theftThreshold = parseInt(threshold) || 10;
+          const slider = document.getElementById('threshold-slider');
+          const display = document.getElementById('threshold-display');
+          if (slider) slider.value = theftThreshold;
+          if (display) display.textContent = theftThreshold + '%';
+          
+          document.body.style.background = bgColor;
+        },
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); }
+            },
+            {
+              get: () => config.surface_color || defaultConfig.surface_color,
+              set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
+            },
+            {
+              get: () => config.primary_action || defaultConfig.primary_action,
+              set: (v) => { config.primary_action = v; window.elementSdk.setConfig({ primary_action: v }); }
+            },
+            {
+              get: () => config.secondary_action || defaultConfig.secondary_action,
+              set: (v) => { config.secondary_action = v; window.elementSdk.setConfig({ secondary_action: v }); }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['system_title', config.system_title || defaultConfig.system_title],
+          ['college_name', config.college_name || defaultConfig.college_name],
+          ['theft_threshold', config.theft_threshold || defaultConfig.theft_threshold]
+        ])
+      });
+    }
+    
+    // ============================================
+    // Local Storage Setup
+    // ============================================
+    
+    function loadData() {
+      const stored = localStorage.getItem('etd_system_data');
+      allData = stored ? JSON.parse(stored) : [];
+    }
+    
+    function saveData() {
+      localStorage.setItem('etd_system_data', JSON.stringify(allData));
+    }
+    
+    loadData();
+    
+    // ============================================
+    // Authentication Functions (DEMO MODE)
+    // ============================================
+    
+    function initDemoMode() {
+      currentUser = {
+        type: 'user',
+        username: 'Demo Admin',
+        email: 'admin@demo.com',
+        __backendId: 'demo_user'
+      };
+      document.getElementById('auth-page').classList.add('hidden');
+      document.getElementById('dashboard-page').classList.remove('hidden');
+      showToast('Demo Mode - Logged in as Admin', 'success');
+      updateDashboard();
+      startSensorUpdates();
+    }
+    
+    function switchAuthTab(tab) {
+      const loginTab = document.getElementById('login-tab');
+      const signupTab = document.getElementById('signup-tab');
+      const loginForm = document.getElementById('login-form');
+      const signupForm = document.getElementById('signup-form');
+      const errorDiv = document.getElementById('auth-error');
+      
+      if (errorDiv) errorDiv.classList.add('hidden');
+      
+      if (tab === 'login') {
+        loginTab.classList.add('bg-cyan-500', 'text-white');
+        loginTab.classList.remove('text-gray-400');
+        signupTab.classList.remove('bg-cyan-500', 'text-white');
+        signupTab.classList.add('text-gray-400');
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+      } else {
+        signupTab.classList.add('bg-cyan-500', 'text-white');
+        signupTab.classList.remove('text-gray-400');
+        loginTab.classList.remove('bg-cyan-500', 'text-white');
+        loginTab.classList.add('text-gray-400');
+        signupForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+      }
+    }
+    
+    async function handleSignup(event) {
+      event.preventDefault();
+      initDemoMode();
+    }
+    
+    async function handleLogin(event) {
+      event.preventDefault();
+      initDemoMode();
+    }
+    
+    function handleLogout() {
+      currentUser = null;
+      if (sensorInterval) clearInterval(sensorInterval);
+      document.getElementById('dashboard-page').classList.add('hidden');
+      document.getElementById('auth-page').classList.remove('hidden');
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-password').value = '';
+      showToast('Logged out successfully', 'info');
+    }
+    
+    // ============================================
+    // Sensor Reading Functions
+    // ============================================
+    
+    function startSensorUpdates() {
+      updateSensorReadings();
+      sensorInterval = setInterval(updateSensorReadings, 3000);
+    }
+    
+    function updateSensorReadings() {
+      // Sensor 1: Current (0-50A)
+      const current = 5 + Math.random() * 35;
+      const currentPercent = (current / 50) * 100;
+      const currentStatus = current > 40 ? 'High' : 'Normal';
+      const currentColor = current > 40 ? 'red' : 'cyan';
+      
+      document.getElementById('sensor1-value').textContent = current.toFixed(1);
+      document.getElementById('sensor1-progress').style.width = currentPercent + '%';
+      document.getElementById('sensor1-percent').textContent = currentPercent.toFixed(0) + '%';
+      document.getElementById('sensor1-status').className = 
+        `flex items-center gap-2 mb-3 p-2 ${currentColor === 'red' ? 'bg-red-500/20' : 'bg-green-500/20'} rounded-lg`;
+      document.getElementById('sensor1-status-text').className = 
+        `text-xs ${currentColor === 'red' ? 'text-red-400' : 'text-green-400'} font-medium`;
+      document.getElementById('sensor1-status-text').textContent = currentStatus;
+      document.getElementById('sensor1-time').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+      
+      // Sensor 2: Voltage (180-250V)
+      const voltage = 200 + Math.random() * 40;
+      const voltagePercent = ((voltage - 180) / (250 - 180)) * 100;
+      const voltageStatus = voltage < 190 || voltage > 240 ? 'Unstable' : 'Stable';
+      const voltageColor = voltage < 190 || voltage > 240 ? 'yellow' : 'green';
+      
+      document.getElementById('sensor2-value').textContent = voltage.toFixed(1);
+      document.getElementById('sensor2-progress').style.width = voltagePercent + '%';
+      document.getElementById('sensor2-percent').textContent = voltagePercent.toFixed(0) + '%';
+      document.getElementById('sensor2-status').className = 
+        `flex items-center gap-2 mb-3 p-2 ${voltageColor === 'yellow' ? 'bg-yellow-500/20' : 'bg-green-500/20'} rounded-lg`;
+      document.getElementById('sensor2-status-text').className = 
+        `text-xs ${voltageColor === 'yellow' ? 'text-yellow-400' : 'text-green-400'} font-medium`;
+      document.getElementById('sensor2-status-text').textContent = voltageStatus;
+      document.getElementById('sensor2-time').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+    }
+    
+    // ============================================
+    // Dashboard Functions
+    // ============================================
+    
+    function switchDashboardView(view) {
+      currentView = view;
+      
+      document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.dataset.view === view) {
+          link.classList.add('text-cyan-400');
+          link.classList.remove('text-gray-400');
+        } else {
+          link.classList.remove('text-cyan-400');
+          link.classList.add('text-gray-400');
+        }
+      });
+      
+      document.querySelectorAll('[id$="-view"]').forEach(el => el.classList.add('hidden'));
+      document.getElementById(view + '-view').classList.remove('hidden');
+      
+      if (view === 'analytics') {
+        updateAnalytics();
+      }
+    }
+    
+    function updateThreshold(value) {
+      theftThreshold = parseInt(value);
+      document.getElementById('threshold-display').textContent = value + '%';
+      
+      if (window.elementSdk) {
+        window.elementSdk.setConfig({ theft_threshold: value });
+      }
+      
+      updateDashboard();
+    }
+    
+    function updateDashboard() {
+      const readings = allData.filter(d => d.type === 'reading');
+      
+      const totalMeters = readings.length;
+      const normalCount = readings.filter(r => r.status === 'normal').length;
+      const suspiciousCount = readings.filter(r => r.status === 'suspicious').length;
+      const theftCount = readings.filter(r => r.status === 'theft').length;
+      
+      document.getElementById('stat-total-meters').textContent = totalMeters;
+      document.getElementById('stat-normal').textContent = normalCount;
+      document.getElementById('stat-suspicious').textContent = suspiciousCount;
+      document.getElementById('stat-theft').textContent = theftCount;
+      
+      const theftBadge = document.getElementById('theft-badge');
+      if (theftCount > 0) {
+        theftBadge.classList.remove('hidden');
+      } else {
+        theftBadge.classList.add('hidden');
+      }
+      
+      if (readings.length > 0) {
+        const latestReading = readings[readings.length - 1];
+        document.getElementById('supply-value').textContent = latestReading.supply_reading.toFixed(2) + ' kW';
+        document.getElementById('consumption-value').textContent = latestReading.consumption_reading.toFixed(2) + ' kW';
+        
+        const loss = latestReading.supply_reading - latestReading.consumption_reading;
+        const lossPercent = (loss / latestReading.supply_reading * 100).toFixed(1);
+        const lossIndicator = document.getElementById('loss-indicator');
+        const lossValue = document.getElementById('loss-value');
+        
+        lossIndicator.classList.remove('hidden');
+        lossValue.textContent = loss.toFixed(2) + ' kW (' + lossPercent + '%)';
+        
+        if (latestReading.status === 'theft') {
+          lossIndicator.className = 'mt-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg alert-blink';
+          lossValue.className = 'font-display text-lg font-bold text-red-400';
+          document.getElementById('efficiency-value').textContent = (100 - parseFloat(lossPercent)).toFixed(1) + '% - THEFT DETECTED!';
+          document.getElementById('efficiency-value').className = 'text-xs text-red-400 alert-blink';
+        } else if (latestReading.status === 'suspicious') {
+          lossIndicator.className = 'mt-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg';
+          lossValue.className = 'font-display text-lg font-bold text-yellow-400';
+          document.getElementById('efficiency-value').textContent = (100 - parseFloat(lossPercent)).toFixed(1) + '% - Suspicious';
+          document.getElementById('efficiency-value').className = 'text-xs text-yellow-400';
+        } else {
+          lossIndicator.className = 'mt-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg';
+          lossValue.className = 'font-display text-lg font-bold text-green-400';
+          document.getElementById('efficiency-value').textContent = (100 - parseFloat(lossPercent)).toFixed(1) + '% Efficient';
+          document.getElementById('efficiency-value').className = 'text-xs text-green-400';
+        }
+      }
+      
+      updateReadingsTable(readings);
+      updateMetersGrid(readings);
+      updateAlertsList(readings);
+    }
+    
+    function updateReadingsTable(readings) {
+      const tbody = document.getElementById('readings-table');
+      
+      if (readings.length === 0) {
+        tbody.innerHTML = `
+          <tr class="border-b border-gray-800/50">
+            <td colspan="7" class="py-8 text-center text-gray-500">
+              <div class="flex flex-col items-center gap-2">
+                <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p>No readings yet. Click "Simulate Reading" to add data.</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      const recentReadings = readings.slice(-10).reverse();
+      tbody.innerHTML = recentReadings.map(r => {
+        const statusClass = r.status === 'theft' ? 'text-red-400 bg-red-500/20' : 
+                           r.status === 'suspicious' ? 'text-yellow-400 bg-yellow-500/20' : 
+                           'text-green-400 bg-green-500/20';
+        const statusIcon = r.status === 'theft' ? '🚨' : r.status === 'suspicious' ? '⚠️' : '✅';
+        
+        return `
+          <tr class="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+            <td class="py-3 pr-4 font-mono text-cyan-400">${r.meter_id}</td>
+            <td class="py-3 pr-4 text-gray-300">${r.location}</td>
+            <td class="py-3 pr-4 text-gray-300">${r.supply_reading.toFixed(2)}</td>
+            <td class="py-3 pr-4 text-gray-300">${r.consumption_reading.toFixed(2)}</td>
+            <td class="py-3 pr-4 ${r.difference > theftThreshold ? 'text-red-400' : r.difference > theftThreshold/2 ? 'text-yellow-400' : 'text-green-400'}">${r.difference.toFixed(1)}%</td>
+            <td class="py-3 pr-4"><span class="px-2 py-1 rounded-full text-xs ${statusClass}">${statusIcon} ${r.status.toUpperCase()}</span></td>
+            <td class="py-3 text-gray-500 text-xs">${formatTime(r.timestamp)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    function updateMetersGrid(readings) {
+      const grid = document.getElementById('meters-grid');
+      
+      if (readings.length === 0) {
+        grid.innerHTML = `
+          <div class="bg-gray-900/80 rounded-xl p-6 text-center col-span-full">
+            <p class="text-gray-500">No meters registered yet.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      grid.innerHTML = readings.map(r => {
+        const statusColor = r.status === 'theft' ? 'border-red-500 glow-red' : 
+                           r.status === 'suspicious' ? 'border-yellow-500' : 
+                           'border-green-500 glow-green';
+        const statusBg = r.status === 'theft' ? 'bg-red-500' : 
+                        r.status === 'suspicious' ? 'bg-yellow-500' : 
+                        'bg-green-500';
+        
+        return `
+          <div class="bg-gray-900/80 rounded-xl p-4 card-hover border ${statusColor}">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-mono text-cyan-400 font-bold">${r.meter_id}</span>
+              <div class="w-3 h-3 rounded-full ${statusBg} ${r.status === 'theft' ? 'alert-blink' : ''}"></div>
+            </div>
+            <p class="text-gray-400 text-sm mb-3">📍 ${r.location}</p>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+              <div class="bg-gray-800/50 rounded p-2">
+                <p class="text-gray-500 text-xs">Supply</p>
+                <p class="text-cyan-400 font-bold">${r.supply_reading.toFixed(2)} kW</p>
+              </div>
+              <div class="bg-gray-800/50 rounded p-2">
+                <p class="text-gray-500 text-xs">Consumption</p>
+                <p class="text-green-400 font-bold">${r.consumption_reading.toFixed(2)} kW</p>
+              </div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-gray-800">
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-500">Difference</span>
+                <span class="font-bold ${r.difference > theftThreshold ? 'text-red-400' : 'text-green-400'}">${r.difference.toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function updateAlertsList(readings) {
+      const list = document.getElementById('alerts-list');
+      const alerts = readings.filter(r => r.status === 'theft' || r.status === 'suspicious');
+      
+      if (alerts.length === 0) {
+        list.innerHTML = `
+          <div class="bg-gray-900/80 rounded-xl p-6 text-center">
+            <div class="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center mb-4">
+              <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <p class="text-green-400 font-medium">No theft detected</p>
+            <p class="text-gray-500 text-sm mt-1">All meters are operating normally</p>
+          </div>
+        `;
+        return;
+      }
+      
+      list.innerHTML = alerts.reverse().map(a => {
+        const isTheft = a.status === 'theft';
+        const borderColor = isTheft ? 'border-red-500' : 'border-yellow-500';
+        const bgColor = isTheft ? 'bg-red-500/10' : 'bg-yellow-500/10';
+        const textColor = isTheft ? 'text-red-400' : 'text-yellow-400';
+        
+        return `
+          <div class="bg-gray-900/80 rounded-xl p-4 card-hover border ${borderColor} ${isTheft ? 'alert-blink' : ''}">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-lg ${bgColor} flex items-center justify-center flex-shrink-0">
+                ${isTheft ? '🚨' : '⚠️'}
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between mb-1">
+                  <h4 class="font-semibold ${textColor}">${isTheft ? 'THEFT DETECTED' : 'Suspicious Activity'}</h4>
+                  <span class="text-xs text-gray-500">${formatTime(a.timestamp)}</span>
+                </div>
+                <p class="text-gray-400 text-sm">Meter: <span class="font-mono text-cyan-400">${a.meter_id}</span> at ${a.location}</p>
+                <p class="text-gray-500 text-sm mt-1">Power loss: ${a.difference.toFixed(1)}% (${(a.supply_reading - a.consumption_reading).toFixed(2)} kW)</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function updateAnalytics() {
+      const readings = allData.filter(d => d.type === 'reading');
+      const total = readings.length || 1;
+      
+      const normalCount = readings.filter(r => r.status === 'normal').length;
+      const suspiciousCount = readings.filter(r => r.status === 'suspicious').length;
+      const theftCount = readings.filter(r => r.status === 'theft').length;
+      
+      const normalPct = (normalCount / total * 100).toFixed(1);
+      const suspiciousPct = (suspiciousCount / total * 100).toFixed(1);
+      const theftPct = (theftCount / total * 100).toFixed(1);
+      
+      document.getElementById('normal-percent').textContent = normalPct + '%';
+      document.getElementById('suspicious-percent').textContent = suspiciousPct + '%';
+      document.getElementById('theft-percent').textContent = theftPct + '%';
+      
+      document.getElementById('normal-bar').style.width = normalPct + '%';
+      document.getElementById('suspicious-bar').style.width = suspiciousPct + '%';
+      document.getElementById('theft-bar').style.width = theftPct + '%';
+      
+      const avgEfficiency = readings.length > 0 
+        ? readings.reduce((sum, r) => sum + (100 - r.difference), 0) / readings.length 
+        : 100;
+      const gaugeOffset = 251 - (avgEfficiency / 100 * 251);
+      document.getElementById('efficiency-gauge').style.strokeDashoffset = gaugeOffset;
+      document.getElementById('efficiency-text').textContent = avgEfficiency.toFixed(1) + '%';
+    }
+    
+    // ============================================
+    // Reading Addition Function
+    // ============================================
+    
+    async function addSampleReading() {
+      const readingCount = allData.filter(d => d.type === 'reading').length;
+      if (readingCount >= 999) {
+        showToast('Maximum readings reached (999). Please delete some readings.', 'error');
+        return;
+      }
+      
+      const locations = ['Block A - Room 101', 'Block B - Lab 1', 'Block C - Workshop', 'Admin Building', 'Library', 'Canteen', 'Hostel A', 'Hostel B'];
+      const location = locations[Math.floor(Math.random() * locations.length)];
+      const meterId = 'MTR-' + String(readingCount + 1).padStart(4, '0');
+      
+      const scenario = Math.random();
+      let supply, consumption, difference, status;
+      
+      if (scenario < 0.6) {
+        supply = 10 + Math.random() * 20;
+        consumption = supply * (0.95 + Math.random() * 0.05);
+        difference = ((supply - consumption) / supply) * 100;
+        status = 'normal';
+      } else if (scenario < 0.85) {
+        supply = 10 + Math.random() * 20;
+        consumption = supply * (0.85 + Math.random() * 0.1);
+        difference = ((supply - consumption) / supply) * 100;
+        status = 'suspicious';
+      } else {
+        supply = 10 + Math.random() * 20;
+        consumption = supply * (0.6 + Math.random() * 0.2);
+        difference = ((supply - consumption) / supply) * 100;
+        status = 'theft';
+      }
+      
+      if (difference > theftThreshold) {
+        status = 'theft';
+      } else if (difference > theftThreshold / 2) {
+        status = 'suspicious';
+      } else {
+        status = 'normal';
+      }
+      
+      const newReading = {
+        type: 'reading',
+        meter_id: meterId,
+        location: location,
+        supply_reading: supply,
+        consumption_reading: consumption,
+        difference: difference,
+        status: status,
+        timestamp: new Date().toISOString(),
+        alert_level: status === 'theft' ? 'critical' : status === 'suspicious' ? 'warning' : 'info',
+        __backendId: 'reading_' + Date.now()
+      };
+      
+      allData.push(newReading);
+      saveData();
+      updateDashboard();
+      
+      showToast(`Reading added: ${meterId} - ${status.toUpperCase()}`, status === 'theft' ? 'error' : status === 'suspicious' ? 'warning' : 'success');
+    }
+    
+    // ============================================
+    // Utility Functions
+    // ============================================
+    
+    function formatTime(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + ' ' + 
+             date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const colors = {
+        success: 'bg-green-500/90 border-green-400',
+        error: 'bg-red-500/90 border-red-400',
+        warning: 'bg-yellow-500/90 border-yellow-400',
+        info: 'bg-cyan-500/90 border-cyan-400'
+      };
+      
+      const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+      };
+      
+      toast.className = `toast px-4 py-3 rounded-lg border text-white text-sm font-medium flex items-center gap-2 ${colors[type]}`;
+      toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9d3f78f880f37a80',t:'MTc3MjEwOTIyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+
+<h2 id="soundValue">0</h2>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+// Your Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAXmOoO-Js2jRN6eUeZ4fVTUzutdrOoL_g",
+  authDomain: "electricity-theft-detect-74a20.firebaseapp.com",
+  databaseURL: "https://electricity-theft-detect-74a20-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "electricity-theft-detect-74a20",
+  storageBucket: "electricity-theft-detect-74a20.firebasestorage.app",
+  messagingSenderId: "749521881195",
+  appId: "1:749521881195:web:4857b81163dd582f70c92e"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+// Reference to sensor value
+const sensorRef = ref(database, "sensor/value");
+
+// Listen for changes
+onValue(sensorRef, (snapshot) => {
+    const data = snapshot.val();
+
+    if (data !== null) {
+        document.getElementById("soundValue").innerText = data;
+
+        if (data > 400) {
+            triggerAlert();   // your alert function
+        }
+    }
+});
+
+ </script>
+
+  <script>
+   const firebaseConfig = {
+  apiKey: "AlzaSyAXmOoO-Js2jRN6eUeZ4fVTUzutdrOoL_g", // Copy this from your Firebase settings
+  authDomain: "electricity-theft-detect-74a20.firebaseapp.com",
+  databaseURL: "https://electricity-theft-detect-74a20-default-rtdb.firebaseio.com", // Found in Realtime Database tab
+  projectId: "electricity-theft-detect-74a20",
+  storageBucket: "electricity-theft-detect-74a20.appspot.com",
+  messagingSenderId: "749521881195",
+  appId: "1:749521881195:web:4857b81163dd582f70c92e"
+ };
+  </script>
+
+  
+ 
+ </body>
+</html>
